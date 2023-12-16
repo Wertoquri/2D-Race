@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class CarController : MonoBehaviour
 {
@@ -11,13 +13,17 @@ public class CarController : MonoBehaviour
 
     Rigidbody2D rb2d;
 
+    public TMP_Text fuelText;
+    public int fuel = 100;
     public WheelJoint2D frontWheel;
     public WheelJoint2D backWheel;
     JointMotor2D motor;
+
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
         motor.maxMotorTorque = 10000;
+        StartCoroutine(FuelReducer());
     }
 
     void FixedUpdate()
@@ -113,11 +119,39 @@ public class CarController : MonoBehaviour
             }
         }
     }
-   
+
     void CheckGameOver()
     {
         Vector2 dir = transform.up;
         RaycastHit2D[] hit = Physics2D.RaycastAll(transform.position, dir, 0.7f);
         Debug.DrawRay(transform.position, dir * 0.7f, Color.red);
+        if (hit.Length > 1)
+        {
+            GameOver();
+        }
+    }
+
+    void GameOver()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    private void OnTriggerEneter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("DeadZone"))
+        {
+            GameOver();
+        }
+    }
+
+    IEnumerator FuelReducer()
+    {
+        while(fuel > 0)
+        {
+            fuel--;
+            fuelText.text = fuel.ToString();
+            yield return new WaitForSeconds(0.5f);
+        }
+        GameOver();
     }
 }
